@@ -1,9 +1,19 @@
-// import './css/styles.css';
-// import { fetchCountries } from './js/fetchCountries';
-// import debounce from 'lodash.debounce';
-// import Notiflix from 'notiflix';
+import Notiflix from 'notiflix';
+import './css/styles.css';
+import axios from 'axios';
+import { getPhoto } from './js/getPhoto';
 
-// const DEBOUNCE_DELAY = 300;
+const refs = {
+  form: document.getElementById('search-form'),
+};
+
+refs.form.addEventListener('submit', onSubmitBtn);
+
+function onSubmitBtn(e) {
+  e.preventDefault();
+  const keyWord = e.target.elements.searchQuery.value;
+  getPhoto(keyWord);
+}
 
 // const refs = {
 //   input: document.getElementById('search-box'),
