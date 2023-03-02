@@ -1,27 +1,29 @@
 import Notiflix from 'notiflix';
 import './css/styles.css';
 import axios from 'axios';
-// import { getPhoto } from './js/getPhoto';
 
 const BACE_URL = 'https://pixabay.com/api/';
 const refs = {
   formRef: document.getElementById('search-form'),
   galleryRef: document.querySelector('.gallery'),
+  loadMoreBtnRef: document.querySelector('.load-more'),
 };
 
+refs.loadMoreBtnRef.style.display = 'none';
+
 refs.formRef.addEventListener('submit', onSubmitBtn);
+refs.loadMoreBtnRef.addEventListener('click', onLoadMoreBtnClick);
 
 function onSubmitBtn(e) {
   e.preventDefault();
   const keyWord = e.target.elements.searchQuery.value;
   if (keyWord !== '') {
     getPhoto(keyWord);
-    // getPhoto(keyWord).then(feedback => {
-    //   console.log(feedback.data.hits);
-    // });
-    // galleryMarkup(feedback);
+    refs.loadMoreBtnRef.style.display = 'block';
   }
 }
+
+function onLoadMoreBtnClick() {}
 
 async function getPhoto(key, page) {
   const options = {
@@ -79,13 +81,6 @@ function galleryMarkup(data) {
     .join('');
   refs.galleryRef.insertAdjacentHTML('beforeend', dataMarkup);
 }
-// const refs = {
-//   input: document.getElementById('search-box'),
-//   countryList: document.querySelector('.country-list'),
-//   countryInfo: document.querySelector('.country-info'),
-// };
-
-// refs.input.addEventListener('input', debounce(countrySearch, DEBOUNCE_DELAY));
 
 // function countrySearch(event) {
 //   const countryName = event.target.value.trim();
@@ -108,46 +103,6 @@ function galleryMarkup(data) {
 //       }
 //     });
 //   }
-// }
-
-// function renderCountriesList(countries) {
-//   const countriesMarkup = countries
-//     .map(country => {
-//       return `<li>
-//       <img src="${country.flags.svg}" alt="Flag of ${country.name.official}" width="60">
-//          <p>${country.name.official}</p>
-//                 </li>`;
-//     })
-//     .join('');
-
-//   refs.countryList.insertAdjacentHTML('beforeend', countriesMarkup);
-// }
-
-// function renderCountry(oneCountry) {
-//   const countryMarkup = oneCountry
-//     .map(country => {
-//       return `
-//       <ul>
-//         <li>
-//           <img src="${country.flags.svg}" alt="Flag of ${
-//         country.name.official
-//       }" width=50 height=40>
-//           <p><b>${country.name.official}</b></p>
-//         </li>
-//         <li>
-//           <p><b>Capital:</b> ${country.capital}</p>
-//         </li>
-//         <li>
-//           <p><b>Population:</b> ${country.population}</p>
-//         </li>
-//         <li>
-//           <p><b>Languages:</b> ${Object.values(country.languages)}</p>
-//         </li>
-//       </ul>`;
-//     })
-//     .join('');
-
-//   refs.countryInfo.insertAdjacentHTML('beforeend', countryMarkup);
 // }
 
 // function clearInfo() {
