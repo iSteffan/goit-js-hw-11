@@ -1,8 +1,9 @@
 import Notiflix from 'notiflix';
 import './css/styles.css';
 import axios from 'axios';
-import { getPhoto } from './js/getPhoto';
+// import { getPhoto } from './js/getPhoto';
 
+const BACE_URL = 'https://pixabay.com/api/';
 const refs = {
   formRef: document.getElementById('search-form'),
   galleryRef: document.querySelector('.gallery'),
@@ -22,23 +23,55 @@ function onSubmitBtn(e) {
   }
 }
 
-export function galleryMarkup(data) {
+async function getPhoto(key, page) {
+  const options = {
+    params: {
+      key: '34039766-687567eb1e3c3ba001a14a80f',
+      q: key,
+      image_type: 'photo',
+      orientation: 'horizontal',
+      safesearch: 'true',
+      page: page,
+      per_page: 40,
+    },
+  };
+
+  try {
+    const response = await axios.get(BACE_URL, options);
+    if (response.data.hits.length === 0) {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    }
+    const feedback = response.data.hits;
+    console.log(feedback);
+    galleryMarkup(feedback);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function galleryMarkup(data) {
   const dataMarkup = data
     .map(item => {
       return `<div class="photo-card">
-  <img src="${item.data.hits.webformatURL}" alt="${item.data.hits.tags}" loading="lazy" />
+  <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
   <div class="info">
     <p class="info-item">
-      <b>${item.data.hits.likes}</b>
+      <b>Likes</b>
+      ${item.likes}
     </p>
     <p class="info-item">
-      <b>${item.data.hits.views}</b>
+      <b>Views</b>
+      ${item.views}
     </p>
     <p class="info-item">
-      <b>${item.data.hits.comments}</b>
+      <b>Comments</b>
+      ${item.comments}
     </p>
     <p class="info-item">
-      <b>${item.data.hits.downloads}</b>
+      <b>Downloads</b>
+      ${item.downloads}
     </p>
   </div>
 </div>`;
