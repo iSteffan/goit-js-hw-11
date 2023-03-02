@@ -4,17 +4,48 @@ import axios from 'axios';
 import { getPhoto } from './js/getPhoto';
 
 const refs = {
-  form: document.getElementById('search-form'),
+  formRef: document.getElementById('search-form'),
+  galleryRef: document.querySelector('.gallery'),
 };
 
-refs.form.addEventListener('submit', onSubmitBtn);
+refs.formRef.addEventListener('submit', onSubmitBtn);
 
 function onSubmitBtn(e) {
   e.preventDefault();
   const keyWord = e.target.elements.searchQuery.value;
-  getPhoto(keyWord);
+  if (keyWord !== '') {
+    getPhoto(keyWord);
+    // getPhoto(keyWord).then(feedback => {
+    //   console.log(feedback.data.hits);
+    // });
+    // galleryMarkup(feedback);
+  }
 }
 
+export function galleryMarkup(data) {
+  const dataMarkup = data
+    .map(item => {
+      return `<div class="photo-card">
+  <img src="${item.data.hits.webformatURL}" alt="${item.data.hits.tags}" loading="lazy" />
+  <div class="info">
+    <p class="info-item">
+      <b>${item.data.hits.likes}</b>
+    </p>
+    <p class="info-item">
+      <b>${item.data.hits.views}</b>
+    </p>
+    <p class="info-item">
+      <b>${item.data.hits.comments}</b>
+    </p>
+    <p class="info-item">
+      <b>${item.data.hits.downloads}</b>
+    </p>
+  </div>
+</div>`;
+    })
+    .join('');
+  refs.galleryRef.insertAdjacentHTML('beforeend', dataMarkup);
+}
 // const refs = {
 //   input: document.getElementById('search-box'),
 //   countryList: document.querySelector('.country-list'),

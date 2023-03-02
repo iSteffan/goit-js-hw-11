@@ -1,4 +1,6 @@
 import axios from 'axios';
+import Notiflix from 'notiflix';
+import { galleryMarkup } from '../index';
 
 const BACE_URL = 'https://pixabay.com/api/';
 
@@ -17,7 +19,13 @@ export async function getPhoto(key, page) {
 
   try {
     const response = await axios.get(BACE_URL, options);
-    console.log(response);
+    if (response.data.hits.length === 0) {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    }
+    const feedback = await response.json();
+    return feedback;
   } catch (error) {
     console.error(error);
   }
