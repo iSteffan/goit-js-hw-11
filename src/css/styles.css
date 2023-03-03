@@ -10,20 +10,33 @@ body {
   background-color: #fafafa;
   color: #212121;
   line-height: 1.5;
+  margin: 0;
+  position: relative;
 }
 
-/* .container {
-  width: 1200px;
-} */
 img {
   display: block;
   width: 100%;
+}
+
+.search-form {
+  display: flex;
+  position: fixed;
+  top: 0;
+
+  justify-content: center;
+  width: 100%;
+  background-color: blue;
+
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 
 .gallery {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-top: 70px;
 }
 
 .info {
@@ -41,4 +54,9 @@ img {
   flex-direction: column;
   width: calc(100% / 4);
   text-align: center;
+}
+
+.load-more {
+  margin-top: 30px;
+  margin-bottom: 30px;
 }
