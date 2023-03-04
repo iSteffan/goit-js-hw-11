@@ -20,11 +20,12 @@ function onSubmitBtn(e) {
   e.preventDefault();
   page = 1;
   refs.galleryRef.innerHTML = '';
-  const keyWord = e.target.elements.searchQuery.value;
+  const keyWord = e.target.elements.searchQuery.value.trim();
 
   if (keyWord !== '') {
-    getPhoto(keyWord, page);
-
+    getPhoto(keyWord, page).then(total => {
+      Notiflix.Notify.info(`Hooray! We found ${total} images.`);
+    });
     refs.loadMoreBtnRef.style.display = 'block';
   }
 }
@@ -32,7 +33,7 @@ function onSubmitBtn(e) {
 refs.loadMoreBtnRef.addEventListener('click', onLoadMoreBtnClick);
 
 function onLoadMoreBtnClick() {
-  const searchRequest = refs.inputRef.value;
+  const searchRequest = refs.inputRef.value.trim();
   page += 1;
   getPhoto(searchRequest, page);
 }
@@ -63,8 +64,10 @@ async function getPhoto(key, page) {
       );
     }
     const feedback = response.data.hits;
-    // console.log(response);
+    const totalHits = response.data.totalHits;
+    // console.log(totalHits);
     galleryMarkup(feedback);
+    return totalHits;
   } catch (error) {
     console.error(error);
   }
