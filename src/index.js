@@ -13,7 +13,6 @@ const refs = {
 refs.loadMoreBtnRef.style.display = 'none';
 
 refs.formRef.addEventListener('submit', onSubmitBtn);
-// refs.loadMoreBtnRef.addEventListener('click', onLoadMoreBtnClick);
 
 let page = 0;
 
@@ -57,9 +56,14 @@ async function getPhoto(key, page) {
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
+    } else if (response.data.hits.length < 40) {
+      refs.loadMoreBtnRef.style.display = 'none';
+      Notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
+      );
     }
     const feedback = response.data.hits;
-    // console.log(feedback);
+    // console.log(response);
     galleryMarkup(feedback);
   } catch (error) {
     console.error(error);
@@ -94,26 +98,3 @@ function galleryMarkup(data) {
     .join('');
   refs.galleryRef.insertAdjacentHTML('beforeend', dataMarkup);
 }
-
-// function countrySearch(event) {
-//   const countryName = event.target.value.trim();
-//   clearInfo();
-
-//   if (countryName !== '') {
-//     fetchCountries(countryName).then(countryData => {
-//       console.log(countryData);
-
-//       if (countryData.length > 10) {
-//         Notiflix.Notify.info(
-//           'Too many matches found. Please enter a more specific name.'
-//         );
-//       } else if (countryData.length === 0) {
-//         Notiflix.Notify.failure('Oops, there is no country with that name');
-//       } else if (countryData.length >= 2 && countryData.length <= 10) {
-//         renderCountriesList(countryData);
-//       } else {
-//         renderCountry(countryData);
-//       }
-//     });
-//   }
-// }
