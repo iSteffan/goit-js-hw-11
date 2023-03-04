@@ -13,16 +13,9 @@ const refs = {
 };
 
 const simpleLightBox = new SimpleLightbox('.gallery a', {
-  captionsData: 'alt', // опис
-  captionDelay: 250, // затримка 250 мілісекунд
+  captionsData: 'alt',
+  captionDelay: 250,
 });
-// var lightbox = new SimpleLightbox('.gallery a', {
-//   captions: true,
-//   captionSelector: 'img',
-//   captionsData: 'alt',
-//   captionPosition: 'bottom',
-//   captionDelay: 250,
-// });
 
 refs.loadMoreBtnRef.style.display = 'none';
 
@@ -32,15 +25,23 @@ let page = 0;
 
 function onSubmitBtn(e) {
   e.preventDefault();
+  refs.loadMoreBtnRef.style.display = 'none';
   page = 1;
   refs.galleryRef.innerHTML = '';
   const keyWord = e.target.elements.searchQuery.value.trim();
 
   if (keyWord !== '') {
-    getPhoto(keyWord, page).then(totalHits => {
-      Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
+    getPhoto(keyWord, page).then(feedback => {
+      if (feedback.totalHits >= 1 && feedback.totalHits > 40) {
+        Notiflix.Notify.info(`Hooray! We found ${feedback.totalHits} images.`);
+        refs.loadMoreBtnRef.style.display = 'block';
+      } else if (feedback.totalHits >= 1) {
+        Notiflix.Notify.info(`Hooray! We found ${feedback.totalHits} images.`);
+      }
+      // if (feedback.hits.length > 40) {
+      //   refs.loadMoreBtnRef.style.display = 'block';
+      // }
     });
-    refs.loadMoreBtnRef.style.display = 'block';
   }
 }
 
@@ -49,7 +50,14 @@ refs.loadMoreBtnRef.addEventListener('click', onLoadMoreBtnClick);
 function onLoadMoreBtnClick() {
   const searchRequest = refs.inputRef.value.trim();
   page += 1;
-  getPhoto(searchRequest, page);
+  getPhoto(searchRequest, page).then(feedback => {
+    if (feedback.hits.length < 40) {
+      refs.loadMoreBtnRef.style.display = 'none';
+      Notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
+  });
 }
 
 async function getPhoto(key, page) {
@@ -71,17 +79,17 @@ async function getPhoto(key, page) {
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
-    } else if (response.data.hits.length < 40) {
-      refs.loadMoreBtnRef.style.display = 'none';
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
     }
-    const feedback = response.data.hits;
-    const totalHits = response.data.totalHits;
+    // else if (response.data.hits.length < 40) {
+    //   refs.loadMoreBtnRef.style.display = 'none';
+    // }
+    // const feedback = response.data.hits;
+    const feedback = response.data;
+
+    // const totalHits = response.data.totalHits;
     // console.log(totalHits);
-    galleryMarkup(feedback);
-    return totalHits;
+    galleryMarkup(feedback.hits);
+    return feedback;
   } catch (error) {
     console.error(error);
   }
