@@ -1,6 +1,8 @@
 import Notiflix from 'notiflix';
 import './css/styles.css';
 import axios from 'axios';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const BACE_URL = 'https://pixabay.com/api/';
 const refs = {
@@ -9,6 +11,18 @@ const refs = {
   loadMoreBtnRef: document.querySelector('.load-more'),
   inputRef: document.querySelector('input'),
 };
+
+const simpleLightBox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt', // опис
+  captionDelay: 250, // затримка 250 мілісекунд
+});
+// var lightbox = new SimpleLightbox('.gallery a', {
+//   captions: true,
+//   captionSelector: 'img',
+//   captionsData: 'alt',
+//   captionPosition: 'bottom',
+//   captionDelay: 250,
+// });
 
 refs.loadMoreBtnRef.style.display = 'none';
 
@@ -23,8 +37,8 @@ function onSubmitBtn(e) {
   const keyWord = e.target.elements.searchQuery.value.trim();
 
   if (keyWord !== '') {
-    getPhoto(keyWord, page).then(total => {
-      Notiflix.Notify.info(`Hooray! We found ${total} images.`);
+    getPhoto(keyWord, page).then(totalHits => {
+      Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
     });
     refs.loadMoreBtnRef.style.display = 'block';
   }
@@ -76,28 +90,31 @@ async function getPhoto(key, page) {
 function galleryMarkup(data) {
   const dataMarkup = data
     .map(item => {
-      return `<div class="photo-card">
-  <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
-  <div class="info">
-    <p class="info-item">
-      <b>Likes</b>
-      ${item.likes}
-    </p>
-    <p class="info-item">
-      <b>Views</b>
-      ${item.views}
-    </p>
-    <p class="info-item">
-      <b>Comments</b>
-      ${item.comments}
-    </p>
-    <p class="info-item">
-      <b>Downloads</b>
-      ${item.downloads}
-    </p>
-  </div>
-</div>`;
+      return `<a class="photo-link" href="${item.largeImageURL}">
+                <div class="photo-card">
+                  <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
+                  <div class="info">
+                    <p class="info-item">
+                      <b>Likes</b>
+                      ${item.likes}
+                    </p>
+                    <p class="info-item">
+                      <b>Views</b>
+                      ${item.views}
+                    </p>
+                    <p class="info-item">
+                      <b>Comments</b>
+                      ${item.comments}
+                    </p>
+                    <p class="info-item">
+                      <b>Downloads</b>
+                      ${item.downloads}
+                    </p>
+                  </div>
+                </div>
+              </a>`;
     })
     .join('');
   refs.galleryRef.insertAdjacentHTML('beforeend', dataMarkup);
+  simpleLightBox.refresh();
 }
