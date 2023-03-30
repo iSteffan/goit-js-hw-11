@@ -1,13 +1,13 @@
-import Notiflix from 'notiflix';
 import './css/styles.css';
 import axios from 'axios';
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
+
+import Pagination from 'tui-pagination';
+
+// instance.getCurrentPage();
 
 const refs = {
   formRef: document.getElementById('search-form'),
   galleryRef: document.querySelector('.gallery'),
-  loadMoreBtnRef: document.querySelector('.load-more'),
   inputRef: document.querySelector('input'),
 };
 
@@ -18,19 +18,40 @@ const API_KEY = '8776cc9f66dd32d7c5ecc9b66eb74c99';
 
 refs.formRef.addEventListener('submit', onSubmitBtn);
 
+const container = document.getElementById('tui-pagination-container');
+
 function onSubmitBtn(e) {
   e.preventDefault();
   const keyWord = e.target.elements.searchQuery.value.trim();
 
-  getMovieByName(keyWord);
-  // getMovieByName(keyWord).then(data => console.log(data.data));
+  // getMovieByName(keyWord);
+  getMovie(keyWord).then(data => {
+    // по даті 0 малюєм пагінацію
+    const instance = new Pagination(container, {
+      totalItems: data[0],
+      itemsPerPage: 20,
+      visiblePages: 5,
+    });
+    // по даті 1 малюєм картку
+    console.log('масив на 1й сторінці', data[1]);
+
+    // слухач на пагінацію
+    instance.on('beforeMove', event => {
+      const currentPage = event.page;
+
+      // робимо запит мо тому самому keyWord тільки змінюємо сторінки
+      getMovie(keyWord, currentPage).then(data => {
+        console.log('масив на вибраній сторінці', data);
+      });
+    });
+  });
 }
 
-async function getMovieByName(name) {
+async function getMovie(name, page = 1) {
   try {
     // Створюєм запит по ключовому слову на сервер
-    const movie = await axios.get(
-      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&page=${3}&include_adult=false&query=${name}`
+    const movies = await axios.get(
+      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&page=${page}&include_adult=false&query=${name}`
     );
 
     // Створюєм запит на сервер для отримання всіх жанрів
@@ -39,7 +60,7 @@ async function getMovieByName(name) {
     );
 
     // Масиви з кінами та жанрами
-    const movieArr = movie.data.results;
+    const movieArr = movies.data.results;
     const genresArr = genres.data.genres;
 
     // перебираємо масив кін, підставляємо в масив з жанрами замість чисел - відповідні їм жанри
@@ -55,36 +76,60 @@ async function getMovieByName(name) {
       };
     });
 
-    console.log('мап', updatedMovies);
-    console.log('чистий бек', movie.data);
-    console.log('кіна', movieArr);
-    console.log('жанри', genresArr);
-
-    return updatedMovies;
+    // console.log('мап', updatedMovies);
+    console.log('чистий бек', movies.data);
+    // console.log('кіна', movieArr);
+    // console.log('жанри', genresArr);
+    if (page === 1) {
+      return [movies.data.total_results, updatedMovies];
+    } else {
+      return updatedMovies;
+    }
   } catch (error) {
     console.error(error);
   }
 }
 
-async function getGenres() {
-  try {
-    const responseGenres = await axios.get(
-      `https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=en-US`
-    );
+// async function getMovieByName(name) {
+//   try {
+//     // Створюєм запит по ключовому слову на сервер
+//     const movie = await axios.get(
+//       `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&page=1&include_adult=false&query=${name}`
+//     );
 
-    console.log(responseGenres);
+//     console.log(movie.data);
+//     return movie.data;
+//   } catch (error) {
+//     console.error(error);
+//   }
+// }
 
-    return responseGenres;
-  } catch (error) {
-    console.error(error);
-  }
-}
+// async function getGenres() {
+//   try {
+//     const responseGenres = await axios.get(
+//       `https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=en-US`
+//     );
+
+//     console.log(responseGenres);
+
+//     return responseGenres;
+//   } catch (error) {
+//     console.error(error);
+//   }
+// }
 // const a = [
-//   {
-//     adult: false,
-//     backdrop_path: '/Ab8mkHmkYADjU7wQiOkia9BzGvS.jpg',
-//     genre_ids: [16, 10751, 14],
-//   },
+//   [
+//     {
+//       adult: false,
+//       backdrop_path: '/Ab8mkHmkYADjU7wQiOkia9BzGvS.jpg',
+//       genre_ids: [16, 10751, 14],
+//     },
+//     {
+//       adult: false,
+//       backdrop_path: '/Ab8mkHmkYADjU7wQiOkia9BzGvS.jpg',
+//       genre_ids: [16, 99, 14],
+//     },
+//   ],
 // ];
 // const b = [
 //   { id: 28, name: 'Action' },
