@@ -3,16 +3,12 @@ import axios from 'axios';
 
 import Pagination from 'tui-pagination';
 
-// instance.getCurrentPage();
-
 const refs = {
   formRef: document.getElementById('search-form'),
   galleryRef: document.querySelector('.gallery'),
-  inputRef: document.querySelector('input'),
 };
 
-const BACE_URL =
-  'https://api.themoviedb.org/3/trending/movie/week?api_key=<<api_key>>';
+const BACE_URL = 'https://api.themoviedb.org/3';
 
 const API_KEY = '8776cc9f66dd32d7c5ecc9b66eb74c99';
 
@@ -32,6 +28,8 @@ function onSubmitBtn(e) {
       itemsPerPage: 20,
       visiblePages: 5,
     });
+
+    refs.galleryRef.insertAdjacentHTML('beforeend', galleryMarkup(data[1]));
     // по даті 1 малюєм картку
     console.log('масив на 1й сторінці', data[1]);
 
@@ -51,12 +49,12 @@ async function getMovie(name, page = 1) {
   try {
     // Створюєм запит по ключовому слову на сервер
     const movies = await axios.get(
-      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&page=${page}&include_adult=false&query=${name}`
+      `${BACE_URL}/search/movie?api_key=${API_KEY}&language=en-US&page=${page}&include_adult=false&query=${name}`
     );
 
     // Створюєм запит на сервер для отримання всіх жанрів
     const genres = await axios.get(
-      `https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=en-US`
+      `${BACE_URL}//genre/movie/list?api_key=${API_KEY}&language=en-US`
     );
 
     // Масиви з кінами та жанрами
@@ -78,8 +76,8 @@ async function getMovie(name, page = 1) {
 
     // console.log('мап', updatedMovies);
     console.log('чистий бек', movies.data);
-    // console.log('кіна', movieArr);
-    // console.log('жанри', genresArr);
+    console.log('кіна', movieArr);
+    console.log('жанри', genresArr);
     if (page === 1) {
       return [movies.data.total_results, updatedMovies];
     } else {
@@ -88,6 +86,18 @@ async function getMovie(name, page = 1) {
   } catch (error) {
     console.error(error);
   }
+}
+
+function galleryMarkup(data) {
+  const dataMarkup = data
+    .map(item => {
+      return `<div class="photo-card">
+                <img src="${item.poster_path}" alt=""/>
+              </div>`;
+    })
+    .join('');
+
+  return dataMarkup;
 }
 
 // async function getMovieByName(name) {
