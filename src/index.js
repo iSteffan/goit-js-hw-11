@@ -4,7 +4,6 @@ import axios from 'axios';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const BACE_URL = 'https://pixabay.com/api/';
 const refs = {
   formRef: document.getElementById('search-form'),
   galleryRef: document.querySelector('.gallery'),
@@ -12,117 +11,223 @@ const refs = {
   inputRef: document.querySelector('input'),
 };
 
-const simpleLightBox = new SimpleLightbox('.gallery a', {
-  captionsData: 'alt',
-  captionDelay: 250,
-});
+const BACE_URL =
+  'https://api.themoviedb.org/3/trending/movie/week?api_key=<<api_key>>';
 
-refs.loadMoreBtnRef.style.display = 'none';
+const API_KEY = '8776cc9f66dd32d7c5ecc9b66eb74c99';
 
 refs.formRef.addEventListener('submit', onSubmitBtn);
 
-let page = 0;
-
 function onSubmitBtn(e) {
   e.preventDefault();
-  refs.loadMoreBtnRef.style.display = 'none';
-  page = 1;
-  refs.galleryRef.innerHTML = '';
   const keyWord = e.target.elements.searchQuery.value.trim();
 
-  if (keyWord !== '') {
-    getPhoto(keyWord, page).then(feedback => {
-      if (feedback.totalHits >= 1 && feedback.totalHits > 40) {
-        Notiflix.Notify.info(`Hooray! We found ${feedback.totalHits} images.`);
-        refs.loadMoreBtnRef.style.display = 'block';
-      } else if (feedback.totalHits >= 1) {
-        Notiflix.Notify.info(`Hooray! We found ${feedback.totalHits} images.`);
-      }
-      // if (feedback.hits.length > 40) {
-      //   refs.loadMoreBtnRef.style.display = 'block';
-      // }
-    });
-  }
+  getMovieByName(keyWord);
+  // getMovieByName(keyWord).then(data => console.log(data.data));
 }
 
-refs.loadMoreBtnRef.addEventListener('click', onLoadMoreBtnClick);
-
-function onLoadMoreBtnClick() {
-  const searchRequest = refs.inputRef.value.trim();
-  page += 1;
-  getPhoto(searchRequest, page).then(feedback => {
-    if (feedback.hits.length < 40) {
-      refs.loadMoreBtnRef.style.display = 'none';
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
-    }
-  });
-}
-
-async function getPhoto(key, page) {
-  const options = {
-    params: {
-      key: '34039766-687567eb1e3c3ba001a14a80f',
-      q: key,
-      image_type: 'photo',
-      orientation: 'horizontal',
-      safesearch: 'true',
-      page: page,
-      per_page: 40,
-    },
-  };
-
+async function getMovieByName(name) {
   try {
-    const response = await axios.get(BACE_URL, options);
-    if (response.data.hits.length === 0) {
-      Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    }
-    // else if (response.data.hits.length < 40) {
-    //   refs.loadMoreBtnRef.style.display = 'none';
-    // }
-    // const feedback = response.data.hits;
-    const feedback = response.data;
+    // Створюєм запит по ключовому слову на сервер
+    const movie = await axios.get(
+      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&page=${3}&include_adult=false&query=${name}`
+    );
 
-    // const totalHits = response.data.totalHits;
-    // console.log(totalHits);
-    galleryMarkup(feedback.hits);
-    return feedback;
+    // Створюєм запит на сервер для отримання всіх жанрів
+    const genres = await axios.get(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=en-US`
+    );
+
+    // Масиви з кінами та жанрами
+    const movieArr = movie.data.results;
+    const genresArr = genres.data.genres;
+
+    // перебираємо масив кін, підставляємо в масив з жанрами замість чисел - відповідні їм жанри
+    const updatedMovies = movieArr.map(movie => {
+      const updatedGenreName = movie.genre_ids.map(genreId => {
+        const genre = genresArr.find(genre => genre.id === genreId);
+        return genre.name;
+      });
+
+      return {
+        ...movie,
+        genre_ids: updatedGenreName,
+      };
+    });
+
+    console.log('мап', updatedMovies);
+    console.log('чистий бек', movie.data);
+    console.log('кіна', movieArr);
+    console.log('жанри', genresArr);
+
+    return updatedMovies;
   } catch (error) {
     console.error(error);
   }
 }
 
-function galleryMarkup(data) {
-  const dataMarkup = data
-    .map(item => {
-      return `<a class="photo-link" href="${item.largeImageURL}">
-                <div class="photo-card">
-                  <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
-                  <div class="info">
-                    <p class="info-item">
-                      <b>Likes</b>
-                      ${item.likes}
-                    </p>
-                    <p class="info-item">
-                      <b>Views</b>
-                      ${item.views}
-                    </p>
-                    <p class="info-item">
-                      <b>Comments</b>
-                      ${item.comments}
-                    </p>
-                    <p class="info-item">
-                      <b>Downloads</b>
-                      ${item.downloads}
-                    </p>
-                  </div>
-                </div>
-              </a>`;
-    })
-    .join('');
-  refs.galleryRef.insertAdjacentHTML('beforeend', dataMarkup);
-  simpleLightBox.refresh();
+async function getGenres() {
+  try {
+    const responseGenres = await axios.get(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=en-US`
+    );
+
+    console.log(responseGenres);
+
+    return responseGenres;
+  } catch (error) {
+    console.error(error);
+  }
 }
+// const a = [
+//   {
+//     adult: false,
+//     backdrop_path: '/Ab8mkHmkYADjU7wQiOkia9BzGvS.jpg',
+//     genre_ids: [16, 10751, 14],
+//   },
+// ];
+// const b = [
+//   { id: 28, name: 'Action' },
+//   { id: 12, name: 'Adventure' },
+//   { id: 16, name: 'Animation' },
+//   { id: 35, name: 'Comedy' },
+//   { id: 80, name: 'Crime' },
+//   { id: 99, name: 'Documentary' },
+//   { id: 18, name: 'Drama' },
+//   { id: 10751, name: 'Family' },
+//   { id: 14, name: 'Fantasy' },
+//   { id: 36, name: 'History' },
+//   { id: 27, name: 'Horror' },
+//   { id: 10402, name: 'Music' },
+//   { id: 9648, name: 'Mystery' },
+//   { id: 10749, name: 'Romance' },
+//   { id: 878, name: 'Science Fiction' },
+//   { id: 10770, name: 'TV Movie' },
+//   { id: 53, name: 'Thriller' },
+//   { id: 10752, name: 'War' },
+//   { id: 37, name: 'Western' },
+// ];
+
+// -----------------------------------------------------------------------------------------------------------
+// const BACE_URL = 'https://pixabay.com/api/';
+// const refs = {
+//   formRef: document.getElementById('search-form'),
+//   galleryRef: document.querySelector('.gallery'),
+//   loadMoreBtnRef: document.querySelector('.load-more'),
+//   inputRef: document.querySelector('input'),
+// };
+
+// const simpleLightBox = new SimpleLightbox('.gallery a', {
+//   captionsData: 'alt',
+//   captionDelay: 250,
+// });
+
+// refs.loadMoreBtnRef.style.display = 'none';
+
+// refs.formRef.addEventListener('submit', onSubmitBtn);
+
+// let page = 0;
+
+// function onSubmitBtn(e) {
+//   e.preventDefault();
+//   refs.loadMoreBtnRef.style.display = 'none';
+//   page = 1;
+//   refs.galleryRef.innerHTML = '';
+//   const keyWord = e.target.elements.searchQuery.value.trim();
+
+//   if (keyWord !== '') {
+//     getPhoto(keyWord, page).then(feedback => {
+//       if (feedback.totalHits >= 1 && feedback.totalHits > 40) {
+//         Notiflix.Notify.info(`Hooray! We found ${feedback.totalHits} images.`);
+//         refs.loadMoreBtnRef.style.display = 'block';
+//       } else if (feedback.totalHits >= 1) {
+//         Notiflix.Notify.info(`Hooray! We found ${feedback.totalHits} images.`);
+//       }
+//       // if (feedback.hits.length > 40) {
+//       //   refs.loadMoreBtnRef.style.display = 'block';
+//       // }
+//     });
+//   }
+// }
+
+// refs.loadMoreBtnRef.addEventListener('click', onLoadMoreBtnClick);
+
+// function onLoadMoreBtnClick() {
+//   const searchRequest = refs.inputRef.value.trim();
+//   page += 1;
+//   getPhoto(searchRequest, page).then(feedback => {
+//     if (feedback.hits.length < 40) {
+//       refs.loadMoreBtnRef.style.display = 'none';
+//       Notiflix.Notify.info(
+//         "We're sorry, but you've reached the end of search results."
+//       );
+//     }
+//   });
+// }
+
+// async function getPhoto(key, page) {
+//   const options = {
+//     params: {
+//       key: '34039766-687567eb1e3c3ba001a14a80f',
+//       q: key,
+//       image_type: 'photo',
+//       orientation: 'horizontal',
+//       safesearch: 'true',
+//       page: page,
+//       per_page: 40,
+//     },
+//   };
+
+//   try {
+//     const response = await axios.get(BACE_URL, options);
+//     if (response.data.hits.length === 0) {
+//       Notiflix.Notify.failure(
+//         'Sorry, there are no images matching your search query. Please try again.'
+//       );
+//     }
+//     // else if (response.data.hits.length < 40) {
+//     //   refs.loadMoreBtnRef.style.display = 'none';
+//     // }
+//     // const feedback = response.data.hits;
+//     const feedback = response.data;
+
+//     // const totalHits = response.data.totalHits;
+//     // console.log(totalHits);
+//     galleryMarkup(feedback.hits);
+//     return feedback;
+//   } catch (error) {
+//     console.error(error);
+//   }
+// }
+
+// function galleryMarkup(data) {
+//   const dataMarkup = data
+//     .map(item => {
+//       return `<a class="photo-link" href="${item.largeImageURL}">
+//                 <div class="photo-card">
+//                   <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
+//                   <div class="info">
+//                     <p class="info-item">
+//                       <b>Likes</b>
+//                       ${item.likes}
+//                     </p>
+//                     <p class="info-item">
+//                       <b>Views</b>
+//                       ${item.views}
+//                     </p>
+//                     <p class="info-item">
+//                       <b>Comments</b>
+//                       ${item.comments}
+//                     </p>
+//                     <p class="info-item">
+//                       <b>Downloads</b>
+//                       ${item.downloads}
+//                     </p>
+//                   </div>
+//                 </div>
+//               </a>`;
+//     })
+//     .join('');
+//   refs.galleryRef.insertAdjacentHTML('beforeend', dataMarkup);
+//   simpleLightBox.refresh();
+// }
