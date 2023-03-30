@@ -75,9 +75,9 @@ async function getMovie(name, page = 1) {
     });
 
     // console.log('мап', updatedMovies);
-    console.log('чистий бек', movies.data);
-    console.log('кіна', movieArr);
-    console.log('жанри', genresArr);
+    console.log('чистий бекенд', movies.data);
+    console.log('масив з кінами', movieArr);
+    console.log('масив з жанрами', genresArr);
     if (page === 1) {
       return [movies.data.total_results, updatedMovies];
     } else {
