@@ -92,7 +92,7 @@ function galleryMarkup(data) {
   const dataMarkup = data
     .map(item => {
       return `<div class="photo-card">
-                <img src="${item.poster_path}" alt=""/>
+                <img src="https://image.tmdb.org/t/p/original/${item.poster_path}" alt=""/>
               </div>`;
     })
     .join('');
